@@ -1,7 +1,9 @@
 package otus
 
+import tools._
 import org.apache.spark.sql.SparkSession
-import org.apache.spark.sql.functions._
+import org.apache.spark.sql.expressions.scalalang.typed
+import org.apache.spark.sql.{DataFrame, Dataset}
 
 
 object SviridenkoHW4App extends App {
@@ -14,22 +16,31 @@ object SviridenkoHW4App extends App {
   val sc = spark.sparkContext
   import spark.implicits._
 
-  val lines = spark.readStream
+  // Checkpoint location
+  val checkpointDir = "hw4/checkpoint"
+  spark.conf
+    .set("spark.sql.streaming.checkpointLocation", checkpointDir)
+
+  // Load lines from nc -lk 9999 as DataFrame
+  val df: DataFrame = spark.readStream
     .format("socket")
     .option("host", "localhost")
     .option("port", 9999)
     .load()
 
-  // Split the lines into words
-  val words = lines.as[String].flatMap(_.split(" "))
+  val ds: Dataset[ClientData] = df
+    .as[String]
+    .map(ClientData.parse)
 
-  // Generate running word count
-  val wordCounts = words.groupBy("value").count()
+  // Generate statistics
+  val aggData = ds
+    .groupByKey(_.gender)
+    .agg(typed.avg(_.age))
 
-  val query = wordCounts.writeStream
+  // Output
+  val query = aggData.writeStream
     .outputMode("complete")
     .format("console")
-    .option("checkpointLocation", "hw4/checkpoint")
     .start()
 
   query.awaitTermination()
