@@ -1,15 +1,28 @@
 package otus
 
-import tools.{DataReader, TaskTwoA, TaskTwoB, TaskThree}
+import org.apache.spark.SparkContext
+import org.apache.spark.sql.SparkSession
+import tools._
 
 object SviridenkoHW2App extends App {
 
+  // Initialize Spark Session
+  val spark = SparkSession.builder().getOrCreate()
+  val sc = spark.sparkContext
+
   val data = DataReader()
 
-  // TaskOne.maxDiff(data). //saveAsTextFile("2a.txt")
-  // TaskTwoA.maxDiff(data).saveAsTextFile("2a.txt")
-  // TaskTwoB.maxDiff(data).take(10).foreach(println)
+  val twoA = "2a - " + TaskTwoA.maxDiff(data).take(3).map(_._1).mkString(sep=", ")
+  val twoB = "2b - " + TaskTwoB.maxDiff(data).take(3).map(_._1).mkString(sep=", ")
+  val three = "3 - " + TaskThree.maxCorr(data).take(3).map(_._1).mkString(sep=", ")
 
-  //TaskThree.vecById(data).take(10).foreach(x => {for (i <- 0 to 10 ) print(x._2(i))})
-  TaskThree.maxCorr(data).take(10).foreach(println)
+  println(twoA)
+  println(twoB)
+  println(three)
+
+  sc
+    .parallelize(List(twoA, twoB, three))
+    .coalesce(1)
+    .saveAsTextFile("hw2/result.txt")
+
 }

@@ -46,7 +46,7 @@ object TaskThree {
       .map{case (key, value) => (key, val2Array(value, minDate, maxDate))}.collectAsMap().toMap
   }
 
-  def maxCorr(data: RDD[RowFormat], topN: Int = 10): RDD[((String, String), Double)] = {
+  def maxCorr(data: RDD[RowFormat]): RDD[((String, String), Double)] = {
 
     val sc = SparkContext.getOrCreate()
     val id2ArrayMap = sc.broadcast(vecById(data))
@@ -58,9 +58,6 @@ object TaskThree {
     rddIdPairs
       .mapPartitions(pairs => pairs.map(pair => pair -> computeCorr(pair._1, pair._2, id2ArrayMap.value)))
       .sortBy(_._2, ascending = false)
-      //.zipWithIndex()
-      //.filter(el => el._2 < topN)
-      //.map(_._1)
   }
 
 }

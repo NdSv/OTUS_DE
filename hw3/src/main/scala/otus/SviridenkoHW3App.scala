@@ -29,7 +29,7 @@ object SviridenkoHW3App extends App {
   // Task 1
   val task1 = crimesDF
     .groupBy($"DISTRICT")
-    .agg(count($"INCIDENT_NUMBER").alias("NUMBER_OF_INCIDENTS"))
+    .agg(count($"INCIDENT_NUMBER").alias("CRIMES_TOTAL"))
 
   // Task 2
   val quantTmp = crimesDF
@@ -38,7 +38,7 @@ object SviridenkoHW3App extends App {
 
   quantTmp.createOrReplaceTempView("quantTmp")
 
-  val task2 = spark.sql("select DISTRICT, percentile_approx(NUMBER_OF_INCIDENTS,0.5) as MEDIAN_OF_INCIDENTS " +
+  val task2 = spark.sql("select DISTRICT, percentile_approx(NUMBER_OF_INCIDENTS,0.5) as CRIMES_MONTHLY " +
     "from quantTmp group by DISTRICT")
 
   // Task 3
@@ -69,8 +69,8 @@ object SviridenkoHW3App extends App {
   // Task 4-5
   val task45 = crimesDF
     .groupBy($"DISTRICT")
-    .agg(mean($"Lat").alias("Lat"),
-         mean($"Long").alias("Long"))
+    .agg(mean($"Lat").alias("LAT"),
+         mean($"Long").alias("LNG"))
 
   val result = task1
     .join(task2, "DISTRICT")

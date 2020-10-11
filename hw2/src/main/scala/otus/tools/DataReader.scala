@@ -7,7 +7,7 @@ import org.apache.spark.sql.SparkSession
 object DataReader extends (() => RDD[RowFormat]) {
 
   val spark = SparkSession.builder().getOrCreate()
-  val fileName = "all_stocks_5yr.csv"
+  val fileName = "hw2/all_stocks_5yr.csv"
 
   override def apply(): RDD[RowFormat] = {
 
